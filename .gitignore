@@ -1,0 +1,12 @@
+Debug/
+ipch/
+x64/
+PunchingTorqueManager.sdf
+PunchingTorqueManager.VC.db
+PunchingTorqueManager/Debug/
+PunchingTorqueManager/Release/
+PunchingTorqueManager/x64/
+.vs/
+PunchingTorqueManager/PunchingTorqueManager.aps
+
+
