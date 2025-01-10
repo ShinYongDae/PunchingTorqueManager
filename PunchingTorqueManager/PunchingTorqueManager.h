@@ -11,7 +11,12 @@
 #include "resource.h"		// 주 기호입니다.
 
 #define LIST_PATH _T("C:\\R2RSet\\PunchingTorqueList.ini")
+#define LOG_PATH _T("C:\\R2RSet\\Log\\")
 
+#define THICKNESS_0 _T("설정없음")
+#define THICKNESS_1 _T("얇은 두께")
+#define THICKNESS_2 _T("중간 두께")
+#define THICKNESS_3 _T("두꺼운 두께")
 
 // CPunchingTorqueManagerApp:
 // 이 클래스의 구현에 대해서는 PunchingTorqueManager.cpp을 참조하십시오.

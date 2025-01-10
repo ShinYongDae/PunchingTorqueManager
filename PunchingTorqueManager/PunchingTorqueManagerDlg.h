@@ -277,8 +277,16 @@ struct stList
 class CPunchingTorqueManagerDlg : public CDialog
 {
 	stList m_stList;
+	CString m_sPathCamSpecDir, m_sModel;
+	int m_nThickModel, m_nThickUnit;
 
+	void LoadIni();
 	void InitList();
+	void InitModel();
+	void ModifyModelData();
+	void ModifyThicknessData();
+	BOOL DirectoryExists(LPCTSTR szPath);
+	void StringToChar(CString str, char* pCh); // char* returned must be deleted... 
 
 // 생성입니다.
 public:
@@ -289,9 +297,14 @@ public:
 	enum { IDD = IDD_PUNCHINGTORQUEMANAGER_DIALOG };
 #endif
 
-	protected:
+	void Log(CString strMsg, int nType=0);
+
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 지원입니다.
 
+	CString GetThicknessName(int nIdx); // 설정없음[0], 얇은 두께[1], 중간 두께[2], 두꺼운 두께[3]
+	BOOL UpdateModel(CString sModel, int nThickness);
+	BOOL UpdateUnit(int nUnit, int nThickness, double dTorqL, double dTorqR);
 
 // 구현입니다.
 protected:
@@ -305,4 +318,9 @@ protected:
 public:
 	afx_msg void OnBnClickedBtnExit();
 	CListCtrl m_List;
+	afx_msg void OnSelchangeComboModel();
+	afx_msg void OnSelchangeComboThickModel();
+	afx_msg void OnSelchangeComboThickUnit();
+	afx_msg void OnBnClickedButtonSaveModel();
+	afx_msg void OnBnClickedButtonSaveUnit();
 };
