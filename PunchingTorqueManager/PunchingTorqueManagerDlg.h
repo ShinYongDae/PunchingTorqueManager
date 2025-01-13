@@ -242,6 +242,29 @@ struct stList
 		}
 	}
 
+	void ReloadList()
+	{
+		if (pUnitList)
+		{
+			delete[] pUnitList;
+			pUnitList = NULL;
+		}
+
+		if (pThick)
+		{
+			delete[] pThick;
+			pThick = NULL;
+		}
+
+		if (pModel)
+		{
+			delete[] pModel;
+			pModel = NULL;
+		}
+
+		LoadList();
+	}
+
 	void AllocMem()
 	{
 		if (nTotalMachines > 0)
@@ -277,7 +300,9 @@ struct stList
 class CPunchingTorqueManagerDlg : public CDialog
 {
 	stList m_stList;
+	int m_nTotalUnit, m_nTotalModel, m_nTotalThick;
 	CString m_sPathCamSpecDir, m_sModel;
+	int m_nUnit;
 	int m_nThickModel, m_nThickUnit;
 
 	void LoadIni();
@@ -287,6 +312,9 @@ class CPunchingTorqueManagerDlg : public CDialog
 	void ModifyThicknessData();
 	BOOL DirectoryExists(LPCTSTR szPath);
 	void StringToChar(CString str, char* pCh); // char* returned must be deleted... 
+	void ModifyComboThickModel(int nThick);
+	void ModifyComboThickUnit(int nUnit, int nThick);
+	void ModifyEditTorqueUnit(int nUnit, int nThick);
 
 // 생성입니다.
 public:
@@ -302,9 +330,21 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 지원입니다.
 
+	int GetModelThickness(CString sModel);
 	CString GetThicknessName(int nIdx); // 설정없음[0], 얇은 두께[1], 중간 두께[2], 두꺼운 두께[3]
 	BOOL UpdateModel(CString sModel, int nThickness);
 	BOOL UpdateUnit(int nUnit, int nThickness, double dTorqL, double dTorqR);
+	int SearchModel(CString sModel);
+	void InsertModel(CString sModel, int nThickness);
+	void ModifyModel(CString sModel, int nThickness);
+	int SearchUnit(int nUnit);
+	void InsertUnit(int nUnit, int nThickness, double dTorqL, double dTorqR);
+	void ModifyUnit(int nUnit, int nThickness, double dTorqL, double dTorqR);
+	void UpdateList();
+	BOOL GetTorque(int nUnit, int nThick, double &dTorqL, double &dTorqR);
+	void ResetComboThickModel();
+	void ResetEditUnit();
+	void DispList();
 
 // 구현입니다.
 protected:
@@ -323,4 +363,5 @@ public:
 	afx_msg void OnSelchangeComboThickUnit();
 	afx_msg void OnBnClickedButtonSaveModel();
 	afx_msg void OnBnClickedButtonSaveUnit();
+	afx_msg void OnChangeEditUnit();
 };
