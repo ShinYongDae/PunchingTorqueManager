@@ -49,6 +49,7 @@ BEGIN_MESSAGE_MAP(CPunchingTorqueManagerDlg, CDialog)
 	ON_EN_CHANGE(IDC_EDIT_UNIT, &CPunchingTorqueManagerDlg::OnChangeEditUnit)
 	ON_BN_CLICKED(IDC_BUTTON_REFRESH_MODEL, &CPunchingTorqueManagerDlg::OnBnClickedButtonRefreshModel)
 	ON_NOTIFY(NM_CLICK, IDC_LIST1, &CPunchingTorqueManagerDlg::OnClickList1)
+	ON_BN_CLICKED(IDC_BUTTON_FIND_MODEL, &CPunchingTorqueManagerDlg::OnBnClickedButtonFindModel)
 END_MESSAGE_MAP()
 
 
@@ -930,4 +931,34 @@ void CPunchingTorqueManagerDlg::SelectList(CString sModel)
 	m_List.EnsureVisible(i, TRUE); //스크롤
 	m_List.SetItemState(m_List.GetSelectionMark(), LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 	m_List.SetFocus();
+}
+
+void CPunchingTorqueManagerDlg::OnBnClickedButtonFindModel()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CString sModel, sMsg;
+	GetDlgItem(IDC_EDIT_MODEL)->GetWindowText(sModel);
+	sModel.MakeUpper();
+
+	int nSel = SearchModelInCombo(sModel);
+	if (nSel  < 0)
+	{
+		sMsg.Format(_T("%s 모델은 토크값이 설정되지 않았습니다."), sModel);
+		AfxMessageBox(sMsg);
+		return;
+	}
+
+	((CComboBox*)GetDlgItem(IDC_COMBO_MODEL))->SetCurSel(nSel);
+	int nThickModel = GetModelThickness(sModel);
+	if (nThickModel < 1)
+	{
+		ResetComboThickModel();
+		return;
+	}
+	ModifyComboThickModel(nThickModel);
+
+	m_sModel = sModel;
+	m_nThickModel = nThickModel;
+
+	SelectList(sModel);
 }

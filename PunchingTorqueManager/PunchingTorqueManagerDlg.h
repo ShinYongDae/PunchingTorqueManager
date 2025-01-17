@@ -373,4 +373,5 @@ public:
 	afx_msg void OnChangeEditUnit();
 	afx_msg void OnBnClickedButtonRefreshModel();
 	afx_msg void OnClickList1(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnBnClickedButtonFindModel();
 };
