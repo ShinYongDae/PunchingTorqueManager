@@ -294,7 +294,12 @@ struct stList
 };
 
 
-
+// Color constants.
+const COLORREF rgbRed = 0x000000FF;
+const COLORREF rgbGreen = 0x0000FF00;
+const COLORREF rgbBlue = 0x00FF0000;
+const COLORREF rgbBlack = 0x00000000;
+const COLORREF rgbWhite = 0x00FFFFFF;
 
 // CPunchingTorqueManagerDlg 대화 상자
 class CPunchingTorqueManagerDlg : public CDialog
@@ -345,6 +350,8 @@ protected:
 	void ResetComboThickModel();
 	void ResetEditUnit();
 	void DispList();
+	int SearchModelInCombo(CString sModel);
+	void SelectList(CString sModel);
 
 // 구현입니다.
 protected:
@@ -364,4 +371,6 @@ public:
 	afx_msg void OnBnClickedButtonSaveModel();
 	afx_msg void OnBnClickedButtonSaveUnit();
 	afx_msg void OnChangeEditUnit();
+	afx_msg void OnBnClickedButtonRefreshModel();
+	afx_msg void OnClickList1(NMHDR *pNMHDR, LRESULT *pResult);
 };

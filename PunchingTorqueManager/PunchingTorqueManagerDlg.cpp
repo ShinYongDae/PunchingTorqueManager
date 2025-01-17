@@ -47,6 +47,8 @@ BEGIN_MESSAGE_MAP(CPunchingTorqueManagerDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_SAVE_MODEL, &CPunchingTorqueManagerDlg::OnBnClickedButtonSaveModel)
 	ON_BN_CLICKED(IDC_BUTTON_SAVE_UNIT, &CPunchingTorqueManagerDlg::OnBnClickedButtonSaveUnit)
 	ON_EN_CHANGE(IDC_EDIT_UNIT, &CPunchingTorqueManagerDlg::OnChangeEditUnit)
+	ON_BN_CLICKED(IDC_BUTTON_REFRESH_MODEL, &CPunchingTorqueManagerDlg::OnBnClickedButtonRefreshModel)
+	ON_NOTIFY(NM_CLICK, IDC_LIST1, &CPunchingTorqueManagerDlg::OnClickList1)
 END_MESSAGE_MAP()
 
 
@@ -161,9 +163,9 @@ void CPunchingTorqueManagerDlg::InitList()
 	for (nIdxUnit = 0; nIdxUnit < m_nTotalUnit; nIdxUnit++)
 	{
 		strItem.Format(_T("#%d 좌"), m_stList.pUnitList[nIdxUnit]);
-		m_List.InsertColumn(3 + (nIdxUnit * 2), strItem, LVCFMT_CENTER, 100);
+		m_List.InsertColumn(3 + (nIdxUnit * 2), strItem, LVCFMT_CENTER, 80);
 		strItem.Format(_T("#%d 우"), m_stList.pUnitList[nIdxUnit]);
-		m_List.InsertColumn(4 + (nIdxUnit * 2), strItem, LVCFMT_CENTER, 100);
+		m_List.InsertColumn(4 + (nIdxUnit * 2), strItem, LVCFMT_CENTER, 80);
 	}
 }
 
@@ -265,19 +267,25 @@ void CPunchingTorqueManagerDlg::LoadIni()
 void CPunchingTorqueManagerDlg::OnSelchangeComboModel()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CString sModel, sMsg;
 	int nThickModel;
 	int nIndex = ((CComboBox*)GetDlgItem(IDC_COMBO_MODEL))->GetCurSel();
 	if (nIndex != LB_ERR)
 	{
-		((CComboBox*)GetDlgItem(IDC_COMBO_MODEL))->GetLBText(nIndex, m_sModel); 
+		((CComboBox*)GetDlgItem(IDC_COMBO_MODEL))->GetLBText(nIndex, sModel); 
 
-		nThickModel = GetModelThickness(m_sModel);
+		nThickModel = GetModelThickness(sModel);
 		if (nThickModel < 1)
 		{
+			sMsg.Format(_T("%s 모델은 토크값이 설정되지 않았습니다."), sModel);
+			AfxMessageBox(sMsg);
 			ResetComboThickModel();
 			return;
 		}
-		ModifyComboThickModel(m_nThickModel);
+		ModifyComboThickModel(nThickModel);
+		m_sModel = sModel;
+		m_nThickModel = nThickModel;
+		SelectList(sModel);
 	}
 }
 
@@ -601,7 +609,10 @@ int CPunchingTorqueManagerDlg::GetModelThickness(CString sModel)
 	TCHAR *token;
 	TCHAR sep[] = { _T(",;\r\n\t") };
 
-	nModelIdx = SearchModel(m_sModel);
+	nModelIdx = SearchModel(sModel);
+	if (nModelIdx < 0)
+		return -1; // Not Found
+
 	sModelIdx.Format(_T("%d"), nModelIdx);
 	if (0 < ::GetPrivateProfileString(_T("Model"), sModelIdx, NULL, szData, sizeof(szData), LIST_PATH))
 	{
@@ -681,7 +692,6 @@ void CPunchingTorqueManagerDlg::Log(CString strMsg, int nType)
 	_stprintf(szPath, LOG_PATH);
 	if (!DirectoryExists(szPath))
 		CreateDirectory(szPath, NULL);
-
 
 	COleDateTime time = COleDateTime::GetCurrentTime();
 
@@ -847,4 +857,77 @@ void CPunchingTorqueManagerDlg::ResetEditUnit()
 	((CComboBox*)GetDlgItem(IDC_COMBO_THICK_UNIT))->SetWindowText(_T(""));
 	GetDlgItem(IDC_EDIT_TORQUE_LEFT)->SetWindowText(_T(""));
 	GetDlgItem(IDC_EDIT_TORQUE_RIGHT)->SetWindowText(_T(""));
+}
+
+void CPunchingTorqueManagerDlg::OnBnClickedButtonRefreshModel()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	ModifyModelData();
+}
+
+
+void CPunchingTorqueManagerDlg::OnClickList1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	*pResult = 0;
+
+	// 행 클릭시 행 넘버값 받아오기
+	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
+	int idx = pNMListView->iItem;
+
+	// 선택된 아이템값(idx)의 열에서 [1]번째 col의 아이템을 가져온다.
+	CString sModel = m_List.GetItemText(idx, 1);
+
+	// Model ComboBox에서 선택한 모델을 표시한다.
+	int nSel = SearchModelInCombo(sModel);
+	((CComboBox*)GetDlgItem(IDC_COMBO_MODEL))->SetCurSel(nSel);
+	int nThickModel = GetModelThickness(sModel);
+	if (nThickModel < 1)
+	{
+		ResetComboThickModel();
+		return;
+	}
+	ModifyComboThickModel(nThickModel);
+
+	m_sModel = sModel;
+	m_nThickModel = nThickModel;
+}
+
+int CPunchingTorqueManagerDlg::SearchModelInCombo(CString sModel)
+{
+	int i, idx = -1, nTotalModel = 0;
+	CString sModelInCombo;
+
+	nTotalModel = ((CComboBox*)GetDlgItem(IDC_COMBO_MODEL))->GetCount();
+
+	for (i = 0; i < nTotalModel; i++)
+	{
+		((CComboBox*)GetDlgItem(IDC_COMBO_MODEL))->GetLBText(i, sModelInCombo);
+
+		if (sModelInCombo == sModel)
+			return i;
+	}
+
+	return idx;
+}
+
+void CPunchingTorqueManagerDlg::SelectList(CString sModel)
+{
+	int i = SearchModel(sModel);
+
+	// 먼저 현재 선택상태를 해제합니다
+	m_List.SetItemState(-1, 0, LVIS_SELECTED | LVIS_FOCUSED);
+	// 원하는 아이템을 선택합니다
+	m_List.SetItemState(i, LVIS_FOCUSED | LVIS_SELECTED, LVIS_FOCUSED | LVIS_SELECTED);
+	// 선택된 아이템을 표시합니다
+	m_List.EnsureVisible(i, false);
+	// 리스트 컨트롤에 포커스를 맞춥니다
+	m_List.SetFocus();
+
+	//특정위치 하이라이트
+	m_List.SetSelectionMark(i);
+	m_List.EnsureVisible(i, TRUE); //스크롤
+	m_List.SetItemState(m_List.GetSelectionMark(), LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+	m_List.SetFocus();
 }
