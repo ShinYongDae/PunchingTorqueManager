@@ -274,6 +274,7 @@ void CPunchingTorqueManagerDlg::OnSelchangeComboModel()
 	if (nIndex != LB_ERR)
 	{
 		((CComboBox*)GetDlgItem(IDC_COMBO_MODEL))->GetLBText(nIndex, sModel); 
+		m_sModel = sModel;
 
 		nThickModel = GetModelThickness(sModel);
 		if (nThickModel < 1)
@@ -949,6 +950,8 @@ void CPunchingTorqueManagerDlg::OnBnClickedButtonFindModel()
 	}
 
 	((CComboBox*)GetDlgItem(IDC_COMBO_MODEL))->SetCurSel(nSel);
+	m_sModel = sModel;
+
 	int nThickModel = GetModelThickness(sModel);
 	if (nThickModel < 1)
 	{
