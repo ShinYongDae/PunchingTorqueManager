@@ -320,6 +320,7 @@ class CPunchingTorqueManagerDlg : public CDialog
 	void ModifyComboThickModel(int nThick);
 	void ModifyComboThickUnit(int nUnit, int nThick);
 	void ModifyEditTorqueUnit(int nUnit, int nThick);
+	BOOL DeleteModel(CString sModel);
 
 // 생성입니다.
 public:
@@ -374,4 +375,5 @@ public:
 	afx_msg void OnBnClickedButtonRefreshModel();
 	afx_msg void OnClickList1(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedButtonFindModel();
+	afx_msg void OnBnClickedButtonDeleteModel();
 };

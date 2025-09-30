@@ -50,6 +50,7 @@ BEGIN_MESSAGE_MAP(CPunchingTorqueManagerDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_REFRESH_MODEL, &CPunchingTorqueManagerDlg::OnBnClickedButtonRefreshModel)
 	ON_NOTIFY(NM_CLICK, IDC_LIST1, &CPunchingTorqueManagerDlg::OnClickList1)
 	ON_BN_CLICKED(IDC_BUTTON_FIND_MODEL, &CPunchingTorqueManagerDlg::OnBnClickedButtonFindModel)
+	ON_BN_CLICKED(IDC_BUTTON_DELETE_MODEL, &CPunchingTorqueManagerDlg::OnBnClickedButtonDeleteModel)
 END_MESSAGE_MAP()
 
 
@@ -65,9 +66,6 @@ BOOL CPunchingTorqueManagerDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
-	//GetDlgItem(IDC_BUTTON1)->ShowWindow(SW_HIDE);
-	//GetDlgItem(IDC_EDIT_UNIT)->ShowWindow(SW_HIDE);
-	//GetDlgItem(IDC_STATIC_UNIT)->ShowWindow(SW_HIDE);
 
 	LoadIni();
 	InitList();
@@ -129,27 +127,7 @@ void CPunchingTorqueManagerDlg::InitList()
 	// Addition ListControl
 	int nIdxUnit;
 	CString strItem = _T("");
-	/*
-		LVITEM item;
-		::ZeroMemory(&item, sizeof(item));
-		item.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_STATE;
-		// 아이디
-		item.iItem = m_List.GetItemCount(); //5;
-		item.iSubItem = 0;
-		item.iImage = 1;
-		item.pszText = _T("1등");
-		m_List.InsertItem(&item);
-		// 이름
-		item.iSubItem = 1;
-		item.pszText = _T("신용대");
-		m_List.SetItem(&item);
-		// 소속
-		item.iSubItem = 2;
-		item.pszText = _T("신용대의 프로그래밍");
-		m_List.SetItem(&item);
-		//item.state = LVIS_SELECTED | LVIS_FOCUSED;
-		//m_List.InsertItem(&item);
-	*/
+
 	m_List.DeleteAllItems();
 	Sleep(30);
 	m_List.SetExtendedStyle(LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT); // 격자 추가
@@ -964,4 +942,67 @@ void CPunchingTorqueManagerDlg::OnBnClickedButtonFindModel()
 	m_nThickModel = nThickModel;
 
 	SelectList(sModel);
+}
+
+
+void CPunchingTorqueManagerDlg::OnBnClickedButtonDeleteModel()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	CString sModel = m_sModel;
+	int nThickModel = m_nThickModel;
+	CString sMsg;
+	sMsg.Format(_T("모델 : %s 에 대한 토크설정 정보를 삭제하시겠습니까?"), sModel);
+	if (IDNO == MessageBox(sMsg, _T("주의"), MB_YESNO | MB_ICONQUESTION))
+	{
+		return;
+	}
+
+	BOOL bRtn = DeleteModel(sModel);
+
+	if (bRtn)
+		UpdateList();
+}
+
+BOOL CPunchingTorqueManagerDlg::DeleteModel(CString sModel)
+{
+	int nDelIdx = SearchModel(sModel);
+	if (nDelIdx < 0)
+		return FALSE;
+
+	int nModelTot = m_stList.nTotalModels;
+
+	TCHAR szData[MAX_PATH];
+	TCHAR *token;
+	TCHAR sep[] = { _T(",;\r\n\t") };
+
+	CString sModelIdx, sData;
+	int nThickness;
+	CString sListModel;
+
+	for (int i = nDelIdx + 1; i < nModelTot; i++)
+	{
+		sModelIdx.Format(_T("%d"), i);
+		if (0 < ::GetPrivateProfileString(_T("Model"), sModelIdx, NULL, szData, sizeof(szData), LIST_PATH))
+		{
+			token = _tcstok(szData, sep);
+			sListModel = CString(token);
+			token = _tcstok(NULL, sep);
+			nThickness = _ttoi(token);
+
+			sModelIdx.Format(_T("%d"), i - 1);
+			sData.Format(_T("%s,%d"), sListModel, nThickness);
+			::WritePrivateProfileString(_T("Model"), sModelIdx, sData, LIST_PATH);
+		}
+	}
+
+	m_stList.nTotalModels--;
+
+	sModelIdx.Format(_T("%d"), m_stList.nTotalModels);
+	sData.Format(_T(""));
+	::WritePrivateProfileString(_T("Model"), sModelIdx, sData, LIST_PATH);
+
+	sData.Format(_T("%d"), m_stList.nTotalModels);
+	::WritePrivateProfileString(_T("Info"), _T("Total_Models"), sData, LIST_PATH);
+
+	return TRUE;
 }
